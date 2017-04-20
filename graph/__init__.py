@@ -1,5 +1,6 @@
 from collections import defaultdict
 from itertools import chain
+from Queue import LifoQueue
 
 
 class Node(object):
@@ -47,6 +48,9 @@ class OrientedEdge(Edge):
 
 
 class Graph(object):
+    PRE_ORDER = 'in'
+    POST_ORDER = 'post'
+
     def __init__(self):
         self._nodes = set()
         self._edges = defaultdict(set)
@@ -77,3 +81,23 @@ class Graph(object):
         for edge in edges:
             if end is None or edge.end == end:
                 yield edge
+
+    def dfs(self, start_node, order=PRE_ORDER):
+        current_path = LifoQueue()
+        visited_nodes = set()
+        current_path.put(start_node)
+
+        while not current_path.empty():
+            current_node = current_path.get()
+            if current_node in visited_nodes:
+                if order == self.POST_ORDER:
+                    yield current_node
+                continue
+            else:
+                visited_nodes.add(current_node)
+                current_path.put(current_node)
+            if order == self.PRE_ORDER:
+                yield current_node
+            for edge in self.iter_edges(start=current_node):
+                if edge.end not in visited_nodes:
+                    current_path.put(edge.end)
