@@ -1,3 +1,7 @@
+from collections import defaultdict
+from itertools import chain
+
+
 class Node(object):
     def __init__(self, value):
         self.value = value
@@ -10,7 +14,7 @@ class Node(object):
 
 
 class Edge(object):
-    def __init__(self, start, end, length):
+    def __init__(self, start, end, length=1):
         self.start = start
         self.end = end
         self.length = length
@@ -45,7 +49,7 @@ class OrientedEdge(Edge):
 class Graph(object):
     def __init__(self):
         self._nodes = set()
-        self._edges = set()
+        self._edges = defaultdict(set)
 
     def add_node(self, *nodes):
         for node in nodes:
@@ -55,7 +59,7 @@ class Graph(object):
         for edge in edges:
             assert edge.start in self._nodes
             assert edge.end in self._nodes
-            self._edges.add(edge)
+            self._edges[edge.start].add(edge)
 
     @property
     def nodes_count(self):
@@ -66,9 +70,10 @@ class Graph(object):
             yield node
 
     def iter_edges(self, start=None, end=None):
-        for edge in self._edges:
-            if start is not None and edge.start != start:
-                continue
-            if end is not None and edge.end != end:
-                continue
-            yield edge
+        if start is not None:
+            edges = self._edges[start]
+        else:
+            edges = chain(*self._edges.itervalues())
+        for edge in edges:
+            if end is None or edge.end == end:
+                yield edge
